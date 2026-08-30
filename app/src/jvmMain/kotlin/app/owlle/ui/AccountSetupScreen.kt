@@ -55,6 +55,8 @@ fun AccountSetupScreen(
     var username by remember { mutableStateOf(initial?.username ?: "") }
     var password by remember { mutableStateOf("") }
     var useSsl by remember { mutableStateOf(initial?.useSsl ?: true) }
+    var smtpHost by remember { mutableStateOf(initial?.smtpHost ?: "") }
+    var smtpPort by remember { mutableStateOf(initial?.smtpPort?.toString() ?: "465") }
     var showPassword by remember { mutableStateOf(false) }
 
     Box(
@@ -128,6 +130,19 @@ fun AccountSetupScreen(
                         Text("SSL/TLS", fontSize = 13.sp, color = OwlleColors.inkMuted)
                     }
                 }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = smtpHost, onValueChange = { smtpHost = it },
+                        label = { Text("SMTP server") },
+                        placeholder = { Text("auto") },
+                        singleLine = true, modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = smtpPort, onValueChange = { smtpPort = it.filter(Char::isDigit) },
+                        label = { Text("Port") },
+                        singleLine = true, modifier = Modifier.width(110.dp),
+                    )
+                }
                 OutlinedTextField(
                     value = username, onValueChange = { username = it },
                     label = { Text("Username") },
@@ -170,6 +185,11 @@ fun AccountSetupScreen(
                                 username = username.trim().ifEmpty { email.trim() },
                                 password = password,
                                 useSsl = useSsl,
+                                smtpHost = smtpHost.trim().ifEmpty {
+                                    host.trim().replaceFirst("imap", "smtp")
+                                },
+                                smtpPort = smtpPort.toIntOrNull() ?: 465,
+                                smtpSsl = (smtpPort.toIntOrNull() ?: 465) != 587,
                             )
                         )
                     },

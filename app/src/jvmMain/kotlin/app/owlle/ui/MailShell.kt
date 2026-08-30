@@ -1,6 +1,8 @@
 package app.owlle.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +31,7 @@ import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Drafts
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.LightMode
@@ -36,17 +40,27 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -58,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.owlle.core.backend.AttachmentSafety
 import app.owlle.core.model.AttachmentMeta
 import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailFolder
@@ -112,21 +127,30 @@ private fun linkify(text: String, linkColor: Color): AnnotatedString = buildAnno
 
 @Composable
 private fun AttachmentChip(attachment: AttachmentMeta, onSave: () -> Unit) {
+    val risky = AttachmentSafety.isRisky(attachment.name)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(OwlleColors.goldWash, MaterialTheme.shapes.small)
+            .background(
+                if (risky) OwlleColors.danger.copy(alpha = 0.12f) else OwlleColors.goldWash,
+                MaterialTheme.shapes.small,
+            )
             .clickable(onClick = onSave)
             .padding(horizontal = 10.dp, vertical = 6.dp),
     ) {
         Icon(
-            Icons.Outlined.AttachFile,
-            contentDescription = null,
-            tint = OwlleColors.goldDeep,
+            if (risky) Icons.Outlined.Warning else Icons.Outlined.AttachFile,
+            contentDescription = if (risky) "Potentially dangerous file type" else null,
+            tint = if (risky) OwlleColors.danger else OwlleColors.goldDeep,
             modifier = Modifier.size(14.dp),
         )
         Spacer(Modifier.width(6.dp))
-        Text(attachment.name, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(
+            attachment.name,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (risky) OwlleColors.danger else OwlleColors.ink,
+        )
         val size = formatSize(attachment.sizeBytes)
         if (size.isNotEmpty()) {
             Spacer(Modifier.width(6.dp))
@@ -156,12 +180,14 @@ fun MailShell(
     selectedMessage: MessageContent?,
     messageLoading: Boolean,
     attachmentNote: String?,
+    imagePreviews: Map<Int, ImageBitmap>,
     error: String?,
     dark: Boolean,
     onToggleTheme: () -> Unit,
     onOpenProfile: () -> Unit,
     onSelectFolder: (MailFolder) -> Unit,
     onRefresh: () -> Unit,
+    onCompose: () -> Unit,
     onOpenMessage: (Envelope) -> Unit,
     onSaveAttachment: (AttachmentMeta) -> Unit,
 ) {
@@ -172,9 +198,9 @@ fun MailShell(
             onToggleTheme, onOpenProfile, onSelectFolder,
         )
         VerticalHairline()
-        MessageListPane(selectedFolder, envelopes, listLoading, error, onRefresh, onOpenMessage)
+        MessageListPane(selectedFolder, envelopes, listLoading, error, onRefresh, onCompose, onOpenMessage)
         VerticalHairline()
-        MessageViewPane(selectedMessage, messageLoading, attachmentNote, onSaveAttachment)
+        MessageViewPane(selectedMessage, messageLoading, attachmentNote, imagePreviews, onSaveAttachment)
     }
 }
 
@@ -319,6 +345,7 @@ private fun MessageListPane(
     loading: Boolean,
     error: String?,
     onRefresh: () -> Unit,
+    onCompose: () -> Unit,
     onOpen: (Envelope) -> Unit,
 ) {
     Column(Modifier.width(340.dp).fillMaxHeight()) {
@@ -341,6 +368,14 @@ private fun MessageListPane(
                     color = OwlleColors.goldDeep,
                 )
                 Spacer(Modifier.width(6.dp))
+            }
+            IconButton(onClick = onCompose) {
+                Icon(
+                    Icons.Outlined.Edit,
+                    contentDescription = "New message",
+                    tint = OwlleColors.goldDeep,
+                    modifier = Modifier.size(18.dp),
+                )
             }
             IconButton(onClick = onRefresh) {
                 Icon(
@@ -434,8 +469,38 @@ private fun MessageViewPane(
     message: MessageContent?,
     loading: Boolean,
     attachmentNote: String?,
+    imagePreviews: Map<Int, ImageBitmap>,
     onSaveAttachment: (AttachmentMeta) -> Unit,
 ) {
+    var riskyPending by remember { mutableStateOf<AttachmentMeta?>(null) }
+
+    riskyPending?.let { pending ->
+        AlertDialog(
+            onDismissRequest = { riskyPending = null },
+            containerColor = OwlleColors.sidebar,
+            title = { Text("Potentially dangerous file", fontWeight = FontWeight.SemiBold) },
+            text = {
+                Text(
+                    "“${pending.name}” is a file type that can run code when opened. " +
+                        "Only save it if you trust the sender. owlle will save it to Downloads " +
+                        "but never open it for you.",
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    riskyPending = null
+                    onSaveAttachment(pending)
+                }) { Text("Save anyway", color = OwlleColors.danger, fontWeight = FontWeight.SemiBold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { riskyPending = null }) {
+                    Text("Cancel", color = OwlleColors.inkMuted)
+                }
+            },
+        )
+    }
     Box(Modifier.fillMaxSize()) {
         when {
             loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -483,7 +548,13 @@ private fun MessageViewPane(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         message.attachments.forEach { attachment ->
-                            AttachmentChip(attachment) { onSaveAttachment(attachment) }
+                            AttachmentChip(attachment) {
+                                if (AttachmentSafety.isRisky(attachment.name)) {
+                                    riskyPending = attachment
+                                } else {
+                                    onSaveAttachment(attachment)
+                                }
+                            }
                         }
                     }
                     if (attachmentNote != null) {
@@ -492,6 +563,20 @@ private fun MessageViewPane(
                             fontSize = 11.sp,
                             color = OwlleColors.goldDeep,
                             modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
+                    imagePreviews.toSortedMap().forEach { (index, bitmap) ->
+                        val name = message.attachments.firstOrNull { it.index == index }?.name ?: ""
+                        Image(
+                            bitmap = bitmap,
+                            contentDescription = name,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .padding(top = 6.dp)
+                                .fillMaxWidth()
+                                .heightIn(max = 420.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .border(1.dp, OwlleColors.hairline, MaterialTheme.shapes.medium),
                         )
                     }
                 }

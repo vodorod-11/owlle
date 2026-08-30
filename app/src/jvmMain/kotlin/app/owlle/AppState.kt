@@ -8,12 +8,20 @@ import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailAccount
 import app.owlle.core.model.MailFolder
 import app.owlle.core.model.MessageContent
+import app.owlle.core.model.OutgoingMessage
+import app.owlle.core.model.SpecialUse
 import app.owlle.core.store.MailRepository
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.skia.Image as SkiaImage
 
 sealed interface Screen {
     data object Setup : Screen
@@ -38,6 +46,9 @@ class AppState(private val scope: CoroutineScope) {
     val selectedMessage = MutableStateFlow<MessageContent?>(null)
     val messageLoading = MutableStateFlow(false)
     val attachmentNote = MutableStateFlow<String?>(null)
+
+    /** Inline previews for image attachments of the open message, keyed by attachment index. */
+    val imagePreviews = MutableStateFlow<Map<Int, ImageBitmap>>(emptyMap())
     val accountEmail = MutableStateFlow("")
 
     private var folderJob: Job? = null
@@ -151,13 +162,51 @@ class AppState(private val scope: CoroutineScope) {
             messageLoading.value = true
             error.value = null
             attachmentNote.value = null
+            imagePreviews.value = emptyMap()
             try {
-                selectedMessage.value = repo.loadMessage(folder, envelope.uid)
+                val content = repo.loadMessage(folder, envelope.uid)
+                selectedMessage.value = content
+                loadImagePreviews(folder, content)
             } catch (e: Exception) {
                 error.value = e.message
             } finally {
                 messageLoading.value = false
             }
         }
+    }
+
+    private fun loadImagePreviews(folder: MailFolder, content: MessageContent) {
+        content.attachments
+            .filter { it.mimeType.startsWith("image/") && it.sizeBytes in 1 until 8_000_000 }
+            .take(4)
+            .forEach { attachment ->
+                val repo = repository ?: return
+                scope.launch {
+                    runCatching {
+                        val bytes = repo.attachmentBytes(folder, content.uid, attachment)
+                        val bitmap = withContext(Dispatchers.Default) {
+                            SkiaImage.makeFromEncoded(bytes).toComposeImageBitmap()
+                        }
+                        // Ignore a preview that finishes after the user moved on.
+                        if (selectedMessage.value?.uid == content.uid) {
+                            imagePreviews.update { it + (attachment.index to bitmap) }
+                        }
+                    }
+                }
+            }
+    }
+
+    /** Sends over SMTP; throws MailBackendException with a readable message on failure. */
+    suspend fun sendMail(message: OutgoingMessage) {
+        val repo = repository ?: throw IllegalStateException("Not connected")
+        repo.send(message)
+    }
+
+    /** Appends to the Drafts folder and refreshes it if it is on screen. */
+    suspend fun saveDraftMail(message: OutgoingMessage) {
+        val repo = repository ?: throw IllegalStateException("Not connected")
+        val drafts = folders.value.firstOrNull { it.specialUse == SpecialUse.DRAFTS }
+        repo.saveDraft(message, drafts)
+        if (selectedFolder.value?.specialUse == SpecialUse.DRAFTS) refreshCurrentFolder()
     }
 }

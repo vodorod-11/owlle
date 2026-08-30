@@ -12,6 +12,9 @@ data class MailAccount(
     val username: String,
     val password: String,
     val useSsl: Boolean = true,
+    val smtpHost: String = "",
+    val smtpPort: Int = 465,
+    val smtpSsl: Boolean = true,
 )
 
 /** RFC 6154 special-use roles, plus CUSTOM for user folders. */
@@ -47,6 +50,15 @@ data class AttachmentMeta(
     val name: String,
     val sizeBytes: Long,
     val mimeType: String,
+)
+
+/** A message being written: recipients as comma-separated address lists. */
+data class OutgoingMessage(
+    val to: String,
+    val cc: String = "",
+    val subject: String,
+    val body: String,
+    val attachmentPaths: List<String> = emptyList(),
 )
 
 data class MessageContent(

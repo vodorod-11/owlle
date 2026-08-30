@@ -9,6 +9,7 @@ import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailAccount
 import app.owlle.core.model.MailFolder
 import app.owlle.core.model.MessageContent
+import app.owlle.core.model.OutgoingMessage
 import app.owlle.core.model.SpecialUse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -86,6 +87,14 @@ class MailRepository(
 
     suspend fun saveAttachment(folder: MailFolder, uid: Long, attachment: AttachmentMeta): String =
         backend.saveAttachment(folder, uid, attachment)
+
+    suspend fun attachmentBytes(folder: MailFolder, uid: Long, attachment: AttachmentMeta): ByteArray =
+        backend.attachmentBytes(folder, uid, attachment)
+
+    suspend fun send(message: OutgoingMessage) = backend.send(message)
+
+    suspend fun saveDraft(message: OutgoingMessage, draftsFolder: MailFolder?) =
+        backend.saveDraft(message, draftsFolder)
 
     suspend fun loadMessage(folder: MailFolder, uid: Long): MessageContent {
         val content = backend.message(folder, uid)

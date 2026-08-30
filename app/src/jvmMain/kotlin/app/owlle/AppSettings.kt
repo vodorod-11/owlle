@@ -32,4 +32,9 @@ object AppSettings {
     var avatarColor: String
         get() = prefs.get("avatarColor", "EFAF1C")
         set(value) = put("avatarColor", value)
+
+    /** App accent color as RRGGBB hex; drives both light and dark palettes. */
+    var accentColor: String
+        get() = prefs.get("accentColor", "EFAF1C")
+        set(value) = put("accentColor", value)
 }
