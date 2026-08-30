@@ -3,6 +3,7 @@ package app.owlle.core.imap
 import app.owlle.core.backend.FolderMapper
 import app.owlle.core.backend.MailBackend
 import app.owlle.core.backend.MailBackendException
+import app.owlle.core.model.AttachmentMeta
 import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailAccount
 import app.owlle.core.model.MailFolder
@@ -18,9 +19,11 @@ import jakarta.mail.Session
 import jakarta.mail.Store
 import jakarta.mail.UIDFolder
 import jakarta.mail.internet.InternetAddress
+import jakarta.mail.internet.MimeUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.eclipse.angus.mail.imap.IMAPFolder
+import java.io.File
 import java.util.Properties
 
 /**
@@ -135,6 +138,7 @@ class ImapBackend : MailBackend {
                         ?: "",
                     sentAtEpochMs = (msg.sentDate ?: msg.receivedDate)?.time ?: 0L,
                     bodyText = extractBody(msg),
+                    attachments = collectAttachments(msg),
                 )
             } catch (e: MailBackendException) {
                 throw e
@@ -144,6 +148,33 @@ class ImapBackend : MailBackend {
                 imapFolder.closeQuietly()
             }
         }
+
+    override suspend fun saveAttachment(
+        folder: MailFolder,
+        uid: Long,
+        attachment: AttachmentMeta,
+    ): String = withContext(Dispatchers.IO) {
+        val imapFolder = openFolder(folder.path)
+        try {
+            val msg = imapFolder.getMessageByUID(uid)
+                ?: throw MailBackendException("Message no longer exists on the server")
+            val part = attachmentParts(msg).getOrNull(attachment.index)
+                ?: throw MailBackendException("Attachment not found in this message")
+
+            val downloads = File(System.getProperty("user.home"), "Downloads").apply { mkdirs() }
+            val target = uniqueFile(downloads, attachment.name)
+            part.inputStream.use { input ->
+                target.outputStream().use { output -> input.copyTo(output) }
+            }
+            target.absolutePath
+        } catch (e: MailBackendException) {
+            throw e
+        } catch (e: Exception) {
+            throw MailBackendException("Could not save ${attachment.name}: ${e.message}", e)
+        } finally {
+            imapFolder.closeQuietly()
+        }
+    }
 
     override suspend fun close(): Unit = withContext(Dispatchers.IO) {
         runCatching { store?.close() }
@@ -165,6 +196,47 @@ class ImapBackend : MailBackend {
 
     private fun Folder.closeQuietly() {
         runCatching { if (isOpen) close(false) }
+    }
+
+    private fun collectAttachments(msg: Part): List<AttachmentMeta> =
+        attachmentParts(msg).mapIndexed { index, part ->
+            AttachmentMeta(
+                index = index,
+                name = part.fileName?.let { runCatching { MimeUtility.decodeText(it) }.getOrDefault(it) }
+                    ?: "attachment-${index + 1}",
+                sizeBytes = part.size.toLong().coerceAtLeast(0L),
+                mimeType = part.contentType?.substringBefore(';')?.trim()?.lowercase() ?: "application/octet-stream",
+            )
+        }
+
+    /** All parts a user would call "attachments", in stable traversal order. */
+    private fun attachmentParts(part: Part): List<Part> {
+        val found = mutableListOf<Part>()
+        fun walk(p: Part) {
+            if (p.isMimeType("multipart/*")) {
+                val multipart = p.content as? Multipart ?: return
+                for (i in 0 until multipart.count) walk(multipart.getBodyPart(i))
+                return
+            }
+            val isAttachment = Part.ATTACHMENT.equals(p.disposition, ignoreCase = true) ||
+                (p.fileName != null && !p.isMimeType("text/plain") && !p.isMimeType("text/html"))
+            if (isAttachment) found += p
+        }
+        walk(part)
+        return found
+    }
+
+    private fun uniqueFile(dir: File, name: String): File {
+        val safe = name.replace(Regex("""[/\\ ]"""), "_")
+        var candidate = File(dir, safe)
+        var n = 1
+        val base = safe.substringBeforeLast('.', safe)
+        val ext = safe.substringAfterLast('.', "")
+        while (candidate.exists()) {
+            candidate = File(dir, if (ext.isEmpty()) "$base ($n)" else "$base ($n).$ext")
+            n++
+        }
+        return candidate
     }
 
     /** Prefer text/plain; fall back to naively de-tagged HTML. */

@@ -3,6 +3,7 @@ package app.owlle
 import app.owlle.core.backend.MailBackendException
 import app.owlle.core.db.DriverFactory
 import app.owlle.core.imap.ImapBackend
+import app.owlle.core.model.AttachmentMeta
 import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailAccount
 import app.owlle.core.model.MailFolder
@@ -36,6 +37,7 @@ class AppState(private val scope: CoroutineScope) {
     val listLoading = MutableStateFlow(false)
     val selectedMessage = MutableStateFlow<MessageContent?>(null)
     val messageLoading = MutableStateFlow(false)
+    val attachmentNote = MutableStateFlow<String?>(null)
     val accountEmail = MutableStateFlow("")
 
     private var folderJob: Job? = null
@@ -102,12 +104,28 @@ class AppState(private val scope: CoroutineScope) {
         }
     }
 
+    fun saveAttachment(attachment: AttachmentMeta) {
+        val repo = repository ?: return
+        val folder = selectedFolder.value ?: return
+        val message = selectedMessage.value ?: return
+        scope.launch {
+            attachmentNote.value = "Saving ${attachment.name}…"
+            try {
+                val path = repo.saveAttachment(folder, message.uid, attachment)
+                attachmentNote.value = "Saved to $path"
+            } catch (e: Exception) {
+                attachmentNote.value = e.message ?: "Could not save ${attachment.name}"
+            }
+        }
+    }
+
     fun openMessage(envelope: Envelope) {
         val repo = repository ?: return
         val folder = selectedFolder.value ?: return
         scope.launch {
             messageLoading.value = true
             error.value = null
+            attachmentNote.value = null
             try {
                 selectedMessage.value = repo.loadMessage(folder, envelope.uid)
             } catch (e: Exception) {

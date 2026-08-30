@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.owlle.core.backend.MailBackend
 import app.owlle.core.db.OwlleDb
+import app.owlle.core.model.AttachmentMeta
 import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailAccount
 import app.owlle.core.model.MailFolder
@@ -79,6 +80,9 @@ class MailRepository(
             }
         }
     }
+
+    suspend fun saveAttachment(folder: MailFolder, uid: Long, attachment: AttachmentMeta): String =
+        backend.saveAttachment(folder, uid, attachment)
 
     suspend fun loadMessage(folder: MailFolder, uid: Long): MessageContent {
         val content = backend.message(folder, uid)

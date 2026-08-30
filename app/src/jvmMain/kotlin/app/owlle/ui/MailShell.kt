@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,11 +24,15 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Drafts
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.outlined.Send
@@ -40,11 +46,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.owlle.core.model.AttachmentMeta
 import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailFolder
 import app.owlle.core.model.MessageContent
@@ -69,6 +84,58 @@ private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val dateFormatter = DateTimeFormatter.ofPattern("d MMM")
 private val fullFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' HH:mm")
 
+private fun formatSize(bytes: Long): String = when {
+    bytes <= 0 -> ""
+    bytes < 1024 -> "$bytes B"
+    bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+    else -> "%.1f MB".format(bytes / (1024.0 * 1024.0))
+}
+
+private val urlRegex = Regex("""https?://[^\s<>()\[\]"]+""")
+
+/** Turns bare URLs into tappable links that open in the system browser. */
+private fun linkify(text: String, linkColor: Color): AnnotatedString = buildAnnotatedString {
+    var last = 0
+    for (match in urlRegex.findAll(text)) {
+        append(text.substring(last, match.range.first))
+        withLink(
+            LinkAnnotation.Url(
+                match.value,
+                TextLinkStyles(
+                    style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline),
+                ),
+            )
+        ) { append(match.value) }
+        last = match.range.last + 1
+    }
+    append(text.substring(last))
+}
+
+@Composable
+private fun AttachmentChip(attachment: AttachmentMeta, onSave: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .background(OwlleColors.goldWash, MaterialTheme.shapes.small)
+            .clickable(onClick = onSave)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+    ) {
+        Icon(
+            Icons.Outlined.AttachFile,
+            contentDescription = null,
+            tint = OwlleColors.goldDeep,
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(attachment.name, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        val size = formatSize(attachment.sizeBytes)
+        if (size.isNotEmpty()) {
+            Spacer(Modifier.width(6.dp))
+            Text(size, fontSize = 11.sp, color = OwlleColors.inkMuted)
+        }
+    }
+}
+
 private fun formatListDate(epochMs: Long): String {
     if (epochMs == 0L) return ""
     val zone = ZoneId.systemDefault()
@@ -80,23 +147,34 @@ private fun formatListDate(epochMs: Long): String {
 @Composable
 fun MailShell(
     accountEmail: String,
+    profileName: String,
+    profileEmoji: String,
     folders: List<MailFolder>,
     selectedFolder: MailFolder?,
     envelopes: List<Envelope>,
     listLoading: Boolean,
     selectedMessage: MessageContent?,
     messageLoading: Boolean,
+    attachmentNote: String?,
     error: String?,
+    dark: Boolean,
+    onToggleTheme: () -> Unit,
+    onOpenProfile: () -> Unit,
     onSelectFolder: (MailFolder) -> Unit,
     onRefresh: () -> Unit,
     onOpenMessage: (Envelope) -> Unit,
+    onSaveAttachment: (AttachmentMeta) -> Unit,
 ) {
     Row(Modifier.fillMaxSize().background(OwlleColors.paper)) {
-        FolderSidebar(accountEmail, folders, selectedFolder, onSelectFolder)
+        FolderSidebar(
+            accountEmail, profileName, profileEmoji,
+            folders, selectedFolder, dark,
+            onToggleTheme, onOpenProfile, onSelectFolder,
+        )
         VerticalHairline()
         MessageListPane(selectedFolder, envelopes, listLoading, error, onRefresh, onOpenMessage)
         VerticalHairline()
-        MessageViewPane(selectedMessage, messageLoading)
+        MessageViewPane(selectedMessage, messageLoading, attachmentNote, onSaveAttachment)
     }
 }
 
@@ -110,8 +188,13 @@ private fun VerticalHairline() {
 @Composable
 private fun FolderSidebar(
     accountEmail: String,
+    profileName: String,
+    profileEmoji: String,
     folders: List<MailFolder>,
     selected: MailFolder?,
+    dark: Boolean,
+    onToggleTheme: () -> Unit,
+    onOpenProfile: () -> Unit,
     onSelect: (MailFolder) -> Unit,
 ) {
     val pinned = folders.filter { it.specialUse != SpecialUse.CUSTOM }
@@ -122,25 +205,40 @@ private fun FolderSidebar(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier
+                .padding(horizontal = 10.dp)
+                .fillMaxWidth()
+                .clickable(onClick = onOpenProfile)
+                .padding(horizontal = 6.dp, vertical = 2.dp),
         ) {
             Box(
-                Modifier.size(26.dp).background(OwlleColors.gold, CircleShape),
+                Modifier.size(30.dp).background(OwlleColors.gold, CircleShape),
                 contentAlignment = Alignment.Center,
-            ) { Text("🦉", fontSize = 13.sp) }
+            ) { Text(profileEmoji, fontSize = 14.sp) }
             Spacer(Modifier.width(8.dp))
-            Text(
-                accountEmail,
-                fontSize = 12.sp,
-                color = OwlleColors.inkMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Column {
+                if (profileName.isNotBlank()) {
+                    Text(
+                        profileName,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Text(
+                    accountEmail,
+                    fontSize = 11.sp,
+                    color = OwlleColors.inkMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
 
         Spacer(Modifier.height(16.dp))
         SidebarLabel("Mailboxes")
-        LazyColumn(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
             items(pinned, key = { it.path }) { folder ->
                 SidebarRow(folder, folder == selected, onSelect)
             }
@@ -149,6 +247,29 @@ private fun FolderSidebar(
                 items(custom, key = { it.path }) { folder ->
                     SidebarRow(folder, folder == selected, onSelect)
                 }
+            }
+        }
+
+        HorizontalDivider(color = OwlleColors.hairline)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp),
+        ) {
+            IconButton(onClick = onToggleTheme) {
+                Icon(
+                    if (dark) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
+                    contentDescription = if (dark) "Switch to light theme" else "Switch to dark theme",
+                    tint = OwlleColors.goldDeep,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            IconButton(onClick = onOpenProfile) {
+                Icon(
+                    Icons.Outlined.Person,
+                    contentDescription = "Profile",
+                    tint = OwlleColors.goldDeep,
+                    modifier = Modifier.size(18.dp),
+                )
             }
         }
     }
@@ -314,8 +435,14 @@ private fun EmptyHint(text: String) {
 
 // ---- message view ----------------------------------------------------------
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MessageViewPane(message: MessageContent?, loading: Boolean) {
+private fun MessageViewPane(
+    message: MessageContent?,
+    loading: Boolean,
+    attachmentNote: String?,
+    onSaveAttachment: (AttachmentMeta) -> Unit,
+) {
     Box(Modifier.fillMaxSize()) {
         when {
             loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -356,9 +483,32 @@ private fun MessageViewPane(message: MessageContent?, loading: Boolean) {
                         color = OwlleColors.inkMuted,
                     )
                 }
+                if (message.attachments.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        message.attachments.forEach { attachment ->
+                            AttachmentChip(attachment) { onSaveAttachment(attachment) }
+                        }
+                    }
+                    if (attachmentNote != null) {
+                        Text(
+                            attachmentNote,
+                            fontSize = 11.sp,
+                            color = OwlleColors.goldDeep,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
+                }
                 HorizontalDivider(color = OwlleColors.hairline, modifier = Modifier.padding(vertical = 10.dp))
                 SelectionContainer {
-                    Text(message.bodyText, fontSize = 14.sp, lineHeight = 21.sp)
+                    Text(
+                        linkify(message.bodyText, OwlleColors.goldDeep),
+                        fontSize = 14.sp,
+                        lineHeight = 21.sp,
+                    )
                 }
             }
         }

@@ -41,6 +41,14 @@ data class Envelope(
     val seen: Boolean = false,
 )
 
+data class AttachmentMeta(
+    /** Position in the message's MIME traversal order; stable for re-fetching. */
+    val index: Int,
+    val name: String,
+    val sizeBytes: Long,
+    val mimeType: String,
+)
+
 data class MessageContent(
     val uid: Long,
     val subject: String,
@@ -48,4 +56,5 @@ data class MessageContent(
     val toDisplay: String,
     val sentAtEpochMs: Long,
     val bodyText: String,
+    val attachments: List<AttachmentMeta> = emptyList(),
 )

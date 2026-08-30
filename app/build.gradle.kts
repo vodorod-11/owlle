@@ -30,6 +30,9 @@ compose.desktop {
             packageName = "owlle"
             packageVersion = "0.1.0"
             description = "owlle — the golden mail client"
+
+            macOS { iconFile.set(project.file("icons/owlle.icns")) }
+            linux { iconFile.set(project.file("icons/owlle-512.png")) }
         }
     }
 }
