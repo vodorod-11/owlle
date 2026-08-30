@@ -26,21 +26,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.owlle.theme.OwlleColors
 
+val avatarColorChoices = listOf(
+    "EFAF1C", "E8833A", "E25C4A", "D96BA1", "9B6BD9", "4A90D9", "3AAFA9", "5CA65C", "6E6E6E",
+)
+
+fun avatarColor(hex: String): Color =
+    runCatching { Color(("FF$hex").toLong(16)) }.getOrDefault(Color(0xFFEFAF1C))
+
 @Composable
 fun ProfileDialog(
     currentName: String,
     currentEmoji: String,
-    onSave: (name: String, emoji: String) -> Unit,
+    currentColorHex: String,
+    onSave: (name: String, emoji: String, colorHex: String) -> Unit,
     onSignOut: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(currentName) }
     var emoji by remember { mutableStateOf(currentEmoji) }
+    var colorHex by remember { mutableStateOf(currentColorHex) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -50,7 +60,7 @@ fun ProfileDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        Modifier.size(44.dp).background(OwlleColors.gold, CircleShape),
+                        Modifier.size(44.dp).background(avatarColor(colorHex), CircleShape),
                         contentAlignment = Alignment.Center,
                     ) { Text(emoji.ifBlank { "🦉" }, fontSize = 20.sp) }
                     Spacer(Modifier.width(12.dp))
@@ -62,6 +72,7 @@ fun ProfileDialog(
                         modifier = Modifier.width(140.dp),
                     )
                 }
+                ColorPicker(selected = colorHex, onPick = { colorHex = it })
                 EmojiPicker(selected = emoji, onPick = { emoji = it })
                 OutlinedTextField(
                     value = name,
@@ -81,7 +92,7 @@ fun ProfileDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(name.trim(), emoji.trim().ifBlank { "🦉" }) }) {
+            TextButton(onClick = { onSave(name.trim(), emoji.trim().ifBlank { "🦉" }, colorHex) }) {
                 Text("Save", color = OwlleColors.goldDeep, fontWeight = FontWeight.SemiBold)
             }
         },
@@ -96,6 +107,25 @@ private val emojiChoices = listOf(
     "😀", "😎", "🤓", "😇", "🥳", "🤠", "👻", "🤖", "🐲", "🧙",
     "🌞", "🌙", "⭐", "🔥", "⚡", "🌈", "🍀", "🌻", "☕", "🚀",
 )
+
+@Composable
+private fun ColorPicker(selected: String, onPick: (String) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        avatarColorChoices.forEach { hex ->
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .background(avatarColor(hex), CircleShape)
+                    .border(
+                        width = if (hex == selected) 2.dp else 1.dp,
+                        color = if (hex == selected) OwlleColors.ink else OwlleColors.hairline,
+                        shape = CircleShape,
+                    )
+                    .clickable { onPick(hex) },
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

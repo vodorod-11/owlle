@@ -18,6 +18,7 @@ import app.owlle.theme.OwlleTheme
 import app.owlle.ui.AccountSetupScreen
 import app.owlle.ui.MailShell
 import app.owlle.ui.ProfileDialog
+import app.owlle.ui.avatarColor
 import java.awt.Taskbar
 import javax.imageio.ImageIO
 
@@ -69,6 +70,7 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
 
     var profileName by remember { mutableStateOf(AppSettings.profileName) }
     var profileEmoji by remember { mutableStateOf(AppSettings.profileEmoji) }
+    var profileColorHex by remember { mutableStateOf(AppSettings.avatarColor) }
     var profileOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { state.autoConnect() }
@@ -100,6 +102,7 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
                 accountEmail = accountEmail,
                 profileName = profileName,
                 profileEmoji = profileEmoji,
+                profileColor = avatarColor(profileColorHex),
                 folders = folders,
                 selectedFolder = selectedFolder,
                 envelopes = envelopes,
@@ -121,11 +124,14 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
                 ProfileDialog(
                     currentName = profileName,
                     currentEmoji = profileEmoji,
-                    onSave = { name, emoji ->
+                    currentColorHex = profileColorHex,
+                    onSave = { name, emoji, colorHex ->
                         profileName = name
                         profileEmoji = emoji
+                        profileColorHex = colorHex
                         AppSettings.profileName = name
                         AppSettings.profileEmoji = emoji
+                        AppSettings.avatarColor = colorHex
                         profileOpen = false
                     },
                     onSignOut = {

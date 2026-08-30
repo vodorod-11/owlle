@@ -27,4 +27,9 @@ object AppSettings {
     var profileEmoji: String
         get() = prefs.get("profileEmoji", "🦉")
         set(value) = put("profileEmoji", value)
+
+    /** Avatar circle color as RRGGBB hex; the brand gold by default. */
+    var avatarColor: String
+        get() = prefs.get("avatarColor", "EFAF1C")
+        set(value) = put("avatarColor", value)
 }

@@ -148,6 +148,7 @@ fun MailShell(
     accountEmail: String,
     profileName: String,
     profileEmoji: String,
+    profileColor: Color,
     folders: List<MailFolder>,
     selectedFolder: MailFolder?,
     envelopes: List<Envelope>,
@@ -166,7 +167,7 @@ fun MailShell(
 ) {
     Row(Modifier.fillMaxSize().background(OwlleColors.paper)) {
         FolderSidebar(
-            accountEmail, profileName, profileEmoji,
+            accountEmail, profileName, profileEmoji, profileColor,
             folders, selectedFolder, dark,
             onToggleTheme, onOpenProfile, onSelectFolder,
         )
@@ -189,6 +190,7 @@ private fun FolderSidebar(
     accountEmail: String,
     profileName: String,
     profileEmoji: String,
+    profileColor: Color,
     folders: List<MailFolder>,
     selected: MailFolder?,
     dark: Boolean,
@@ -214,7 +216,7 @@ private fun FolderSidebar(
                     .padding(horizontal = 6.dp, vertical = 2.dp),
             ) {
                 Box(
-                    Modifier.size(30.dp).background(OwlleColors.gold, CircleShape),
+                    Modifier.size(30.dp).background(profileColor, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) { Text(profileEmoji, fontSize = 14.sp) }
                 Spacer(Modifier.width(8.dp))
