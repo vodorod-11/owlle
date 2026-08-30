@@ -224,6 +224,7 @@ private fun FolderSidebar(
                             profileName,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
+                            color = OwlleColors.ink,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
