@@ -22,6 +22,9 @@ object AccountStore {
         prefs.putInt("imapPort", account.imapPort)
         prefs.put("username", account.username)
         prefs.putBoolean("useSsl", account.useSsl)
+        prefs.put("smtpHost", account.smtpHost)
+        prefs.putInt("smtpPort", account.smtpPort)
+        prefs.putBoolean("smtpSsl", account.smtpSsl)
         runCatching { prefs.flush() }
         runCatching {
             Keyring.create().use { it.setPassword(SERVICE, account.email, account.password) }
@@ -50,6 +53,9 @@ object AccountStore {
             username = prefs.get("username", email),
             password = "",
             useSsl = prefs.getBoolean("useSsl", true),
+            smtpHost = prefs.get("smtpHost", host.replaceFirst("imap", "smtp")),
+            smtpPort = prefs.getInt("smtpPort", 465),
+            smtpSsl = prefs.getBoolean("smtpSsl", true),
         )
     }
 

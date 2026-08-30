@@ -8,6 +8,7 @@ import app.owlle.core.model.Envelope
 import app.owlle.core.model.MailAccount
 import app.owlle.core.model.MailFolder
 import app.owlle.core.model.MessageContent
+import app.owlle.core.model.OutgoingMessage
 import jakarta.mail.AuthenticationFailedException
 import jakarta.mail.FetchProfile
 import jakarta.mail.Flags
@@ -19,6 +20,9 @@ import jakarta.mail.Session
 import jakarta.mail.Store
 import jakarta.mail.UIDFolder
 import jakarta.mail.internet.InternetAddress
+import jakarta.mail.internet.MimeBodyPart
+import jakarta.mail.internet.MimeMessage
+import jakarta.mail.internet.MimeMultipart
 import jakarta.mail.internet.MimeUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -174,6 +178,100 @@ class ImapBackend : MailBackend {
         } finally {
             imapFolder.closeQuietly()
         }
+    }
+
+    override suspend fun attachmentBytes(
+        folder: MailFolder,
+        uid: Long,
+        attachment: AttachmentMeta,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val imapFolder = openFolder(folder.path)
+        try {
+            val msg = imapFolder.getMessageByUID(uid)
+                ?: throw MailBackendException("Message no longer exists on the server")
+            val part = attachmentParts(msg).getOrNull(attachment.index)
+                ?: throw MailBackendException("Attachment not found in this message")
+            part.inputStream.use { it.readBytes() }
+        } catch (e: MailBackendException) {
+            throw e
+        } catch (e: Exception) {
+            throw MailBackendException("Could not load ${attachment.name}: ${e.message}", e)
+        } finally {
+            imapFolder.closeQuietly()
+        }
+    }
+
+    override suspend fun send(message: OutgoingMessage): Unit = withContext(Dispatchers.IO) {
+        val account = this@ImapBackend.account
+            ?: throw MailBackendException("Not connected — add an account first")
+        if (account.smtpHost.isBlank()) {
+            throw MailBackendException("No SMTP server configured for this account")
+        }
+        try {
+            val protocol = if (account.smtpSsl) "smtps" else "smtp"
+            val props = Properties().apply {
+                put("mail.$protocol.host", account.smtpHost)
+                put("mail.$protocol.port", account.smtpPort.toString())
+                put("mail.$protocol.auth", "true")
+                put("mail.$protocol.connectiontimeout", "15000")
+                put("mail.$protocol.timeout", "30000")
+                if (!account.smtpSsl) put("mail.smtp.starttls.enable", "true")
+            }
+            val session = Session.getInstance(props)
+            val mime = buildMime(session, account, message)
+            val transport = session.getTransport(protocol)
+            try {
+                transport.connect(account.smtpHost, account.smtpPort, account.username, account.password)
+                transport.sendMessage(mime, mime.allRecipients)
+            } finally {
+                runCatching { transport.close() }
+            }
+        } catch (e: MailBackendException) {
+            throw e
+        } catch (e: AuthenticationFailedException) {
+            throw MailBackendException("The SMTP server rejected this username or password", e)
+        } catch (e: Exception) {
+            throw MailBackendException("Could not send: ${e.message}", e)
+        }
+    }
+
+    override suspend fun saveDraft(
+        message: OutgoingMessage,
+        draftsFolder: MailFolder?,
+    ): Unit = withContext(Dispatchers.IO) {
+        val account = this@ImapBackend.account
+            ?: throw MailBackendException("Not connected — add an account first")
+        try {
+            val mime = buildMime(Session.getInstance(Properties()), account, message)
+            mime.setFlag(Flags.Flag.DRAFT, true)
+            val folder = requireStore().getFolder(draftsFolder?.path ?: "Drafts")
+            if (!folder.exists()) folder.create(Folder.HOLDS_MESSAGES)
+            folder.appendMessages(arrayOf(mime))
+        } catch (e: Exception) {
+            throw MailBackendException("Could not save draft: ${e.message}", e)
+        }
+    }
+
+    private fun buildMime(session: Session, account: MailAccount, out: OutgoingMessage): MimeMessage {
+        val mime = MimeMessage(session)
+        mime.setFrom(InternetAddress(account.email, account.displayName.ifBlank { null }, "UTF-8"))
+        mime.setRecipients(Message.RecipientType.TO, InternetAddress.parse(out.to))
+        if (out.cc.isNotBlank()) {
+            mime.setRecipients(Message.RecipientType.CC, InternetAddress.parse(out.cc))
+        }
+        mime.setSubject(out.subject, "UTF-8")
+        mime.sentDate = java.util.Date()
+        if (out.attachmentPaths.isEmpty()) {
+            mime.setText(out.body, "UTF-8")
+        } else {
+            val multipart = MimeMultipart()
+            multipart.addBodyPart(MimeBodyPart().apply { setText(out.body, "UTF-8") })
+            out.attachmentPaths.forEach { path ->
+                multipart.addBodyPart(MimeBodyPart().apply { attachFile(File(path)) })
+            }
+            mime.setContent(multipart)
+        }
+        return mime
     }
 
     override suspend fun close(): Unit = withContext(Dispatchers.IO) {

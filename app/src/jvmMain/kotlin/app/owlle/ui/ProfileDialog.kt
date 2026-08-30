@@ -44,13 +44,15 @@ fun ProfileDialog(
     currentName: String,
     currentEmoji: String,
     currentColorHex: String,
-    onSave: (name: String, emoji: String, colorHex: String) -> Unit,
+    currentAccentHex: String,
+    onSave: (name: String, emoji: String, colorHex: String, accentHex: String) -> Unit,
     onSignOut: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(currentName) }
     var emoji by remember { mutableStateOf(currentEmoji) }
     var colorHex by remember { mutableStateOf(currentColorHex) }
+    var accentHex by remember { mutableStateOf(currentAccentHex) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -82,6 +84,13 @@ fun ProfileDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
+                    "App color",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = OwlleColors.inkMuted,
+                )
+                ColorPicker(selected = accentHex, onPick = { accentHex = it })
+                Text(
                     "Shown in the sidebar and, later, as the sender name on outgoing mail.",
                     fontSize = 12.sp,
                     color = OwlleColors.inkMuted,
@@ -92,7 +101,7 @@ fun ProfileDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(name.trim(), emoji.trim().ifBlank { "🦉" }, colorHex) }) {
+            TextButton(onClick = { onSave(name.trim(), emoji.trim().ifBlank { "🦉" }, colorHex, accentHex) }) {
                 Text("Save", color = OwlleColors.goldDeep, fontWeight = FontWeight.SemiBold)
             }
         },

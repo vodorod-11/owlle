@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -35,39 +36,45 @@ data class OwllePalette(
     val isDark: Boolean,
 )
 
-val LightPalette = OwllePalette(
-    gold = Color(0xFFEFAF1C),
-    goldDeep = Color(0xFFB07C08),
-    goldWash = Color(0xFFFBF3DC),
+/** The brand default. Any accent from the profile picker reshapes both palettes. */
+val GoldAccent = Color(0xFFEFAF1C)
+
+fun lightPalette(accent: Color): OwllePalette = OwllePalette(
+    gold = accent,
+    goldDeep = lerp(accent, Color.Black, 0.30f),
+    goldWash = lerp(accent, Color.White, 0.86f),
     paper = Color(0xFFFCFAF4),
     sidebar = Color(0xFFF4F0E4),
-    sidebarIcon = Color(0xFFB07C08),
+    sidebarIcon = lerp(accent, Color.Black, 0.30f),
     ink = Color(0xFF272217),
     inkMuted = Color(0xFF6E6656),
     hairline = Color(0xFFE5DEC9),
-    unread = Color(0xFFEFAF1C),
-    selection = Color(0xFFF6E7BC),
+    unread = accent,
+    selection = lerp(accent, Color.White, 0.70f),
     onSelection = Color(0xFF272217),
     danger = Color(0xFFA3492E),
     isDark = false,
 )
 
-val DarkPalette = OwllePalette(
-    gold = Color(0xFFF5B31F),
-    goldDeep = Color(0xFFF0B028),
-    goldWash = Color(0xFF383117),
+fun darkPalette(accent: Color): OwllePalette = OwllePalette(
+    gold = lerp(accent, Color.White, 0.06f),
+    goldDeep = lerp(accent, Color.White, 0.10f),
+    goldWash = lerp(accent, Color.Black, 0.72f),
     paper = Color(0xFF191919),
     sidebar = Color(0xFF212121),
     sidebarIcon = Color(0xFF908D87),
     ink = Color(0xFFE9E8E6),
     inkMuted = Color(0xFF9A9791),
     hairline = Color(0xFF333230),
-    unread = Color(0xFFF5B31F),
-    selection = Color(0xFFF0B028),
+    unread = lerp(accent, Color.White, 0.10f),
+    selection = lerp(accent, Color.White, 0.10f),
     onSelection = Color(0xFF191919),
     danger = Color(0xFFE08A6D),
     isDark = true,
 )
+
+val LightPalette = lightPalette(GoldAccent)
+val DarkPalette = darkPalette(GoldAccent)
 
 private val LocalOwllePalette = staticCompositionLocalOf { LightPalette }
 
@@ -134,8 +141,12 @@ private val shapes = Shapes(
 )
 
 @Composable
-fun OwlleTheme(dark: Boolean = false, content: @Composable () -> Unit) {
-    val palette = if (dark) DarkPalette else LightPalette
+fun OwlleTheme(
+    dark: Boolean = false,
+    accent: Color = GoldAccent,
+    content: @Composable () -> Unit,
+) {
+    val palette = if (dark) darkPalette(accent) else lightPalette(accent)
     CompositionLocalProvider(LocalOwllePalette provides palette) {
         MaterialTheme(
             colorScheme = if (dark) darkScheme(palette) else lightScheme(palette),

@@ -16,6 +16,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import app.owlle.theme.OwlleTheme
 import app.owlle.ui.AccountSetupScreen
+import app.owlle.ui.ComposeMailWindow
 import app.owlle.ui.MailShell
 import app.owlle.ui.ProfileDialog
 import app.owlle.ui.avatarColor
@@ -34,9 +35,15 @@ fun main() {
             state = rememberWindowState(size = DpSize(1200.dp, 780.dp)),
         ) {
             var dark by remember { mutableStateOf(AppSettings.darkMode) }
-            OwlleTheme(dark = dark) {
+            var accentHex by remember { mutableStateOf(AppSettings.accentColor) }
+            OwlleTheme(dark = dark, accent = avatarColor(accentHex)) {
                 App(
                     dark = dark,
+                    accentHex = accentHex,
+                    onAccentChange = { hex ->
+                        accentHex = hex
+                        AppSettings.accentColor = hex
+                    },
                     onToggleTheme = {
                         dark = !dark
                         AppSettings.darkMode = dark
@@ -60,7 +67,12 @@ private fun installDockIcon() {
 }
 
 @Composable
-private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
+private fun App(
+    dark: Boolean,
+    accentHex: String,
+    onAccentChange: (String) -> Unit,
+    onToggleTheme: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val state = remember { AppState(scope) }
 
@@ -72,6 +84,7 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
     var profileEmoji by remember { mutableStateOf(AppSettings.profileEmoji) }
     var profileColorHex by remember { mutableStateOf(AppSettings.avatarColor) }
     var profileOpen by remember { mutableStateOf(false) }
+    var composeOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { state.autoConnect() }
 
@@ -96,6 +109,7 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
             val selectedMessage by state.selectedMessage.collectAsState()
             val messageLoading by state.messageLoading.collectAsState()
             val attachmentNote by state.attachmentNote.collectAsState()
+            val imagePreviews by state.imagePreviews.collectAsState()
             val accountEmail by state.accountEmail.collectAsState()
 
             MailShell(
@@ -110,28 +124,36 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
                 selectedMessage = selectedMessage,
                 messageLoading = messageLoading,
                 attachmentNote = attachmentNote,
+                imagePreviews = imagePreviews,
                 error = error,
                 dark = dark,
                 onToggleTheme = onToggleTheme,
                 onOpenProfile = { profileOpen = true },
                 onSelectFolder = state::selectFolder,
                 onRefresh = state::refreshCurrentFolder,
+                onCompose = { composeOpen = true },
                 onOpenMessage = state::openMessage,
                 onSaveAttachment = state::saveAttachment,
             )
+
+            if (composeOpen) {
+                ComposeMailWindow(state = state, onClose = { composeOpen = false })
+            }
 
             if (profileOpen) {
                 ProfileDialog(
                     currentName = profileName,
                     currentEmoji = profileEmoji,
                     currentColorHex = profileColorHex,
-                    onSave = { name, emoji, colorHex ->
+                    currentAccentHex = accentHex,
+                    onSave = { name, emoji, colorHex, newAccentHex ->
                         profileName = name
                         profileEmoji = emoji
                         profileColorHex = colorHex
                         AppSettings.profileName = name
                         AppSettings.profileEmoji = emoji
                         AppSettings.avatarColor = colorHex
+                        onAccentChange(newAccentHex)
                         profileOpen = false
                     },
                     onSignOut = {
