@@ -6,15 +6,25 @@ import java.util.prefs.Preferences
 object AppSettings {
     private val prefs = Preferences.userRoot().node("app/owlle")
 
+    // macOS flushes java.util.prefs lazily (up to 30s); an explicit flush
+    // makes writes survive the app being closed right after a change.
+    private fun put(key: String, value: String) {
+        prefs.put(key, value)
+        runCatching { prefs.flush() }
+    }
+
     var darkMode: Boolean
         get() = prefs.getBoolean("darkMode", false)
-        set(value) = prefs.putBoolean("darkMode", value)
+        set(value) {
+            prefs.putBoolean("darkMode", value)
+            runCatching { prefs.flush() }
+        }
 
     var profileName: String
         get() = prefs.get("profileName", "")
-        set(value) = prefs.put("profileName", value)
+        set(value) = put("profileName", value)
 
     var profileEmoji: String
         get() = prefs.get("profileEmoji", "🦉")
-        set(value) = prefs.put("profileEmoji", value)
+        set(value) = put("profileEmoji", value)
 }

@@ -1,9 +1,13 @@
 package app.owlle.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,12 +56,13 @@ fun ProfileDialog(
                     Spacer(Modifier.width(12.dp))
                     OutlinedTextField(
                         value = emoji,
-                        onValueChange = { emoji = it.take(4) },
+                        onValueChange = { emoji = it.take(16) },
                         label = { Text("Avatar emoji") },
                         singleLine = true,
                         modifier = Modifier.width(140.dp),
                     )
                 }
+                EmojiPicker(selected = emoji, onPick = { emoji = it })
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -83,4 +89,37 @@ fun ProfileDialog(
             TextButton(onClick = onDismiss) { Text("Cancel", color = OwlleColors.inkMuted) }
         },
     )
+}
+
+private val emojiChoices = listOf(
+    "🦉", "🦊", "🐻", "🐼", "🐸", "🐙", "🦄", "🐯", "🦁", "🐝",
+    "😀", "😎", "🤓", "😇", "🥳", "🤠", "👻", "🤖", "🐲", "🧙",
+    "🌞", "🌙", "⭐", "🔥", "⚡", "🌈", "🍀", "🌻", "☕", "🚀",
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EmojiPicker(selected: String, onPick: (String) -> Unit) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        emojiChoices.forEach { candidate ->
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(34.dp)
+                    .background(
+                        if (candidate == selected) OwlleColors.goldWash else OwlleColors.sidebar,
+                        MaterialTheme.shapes.small,
+                    )
+                    .border(
+                        1.dp,
+                        if (candidate == selected) OwlleColors.gold else OwlleColors.hairline,
+                        MaterialTheme.shapes.small,
+                    )
+                    .clickable { onPick(candidate) },
+            ) { Text(candidate, fontSize = 16.sp) }
+        }
+    }
 }

@@ -22,6 +22,7 @@ object AccountStore {
         prefs.putInt("imapPort", account.imapPort)
         prefs.put("username", account.username)
         prefs.putBoolean("useSsl", account.useSsl)
+        runCatching { prefs.flush() }
         runCatching {
             Keyring.create().use { it.setPassword(SERVICE, account.email, account.password) }
         }
@@ -57,6 +58,9 @@ object AccountStore {
         if (email.isNotBlank()) {
             runCatching { Keyring.create().use { it.deletePassword(SERVICE, email) } }
         }
-        runCatching { prefs.clear() }
+        runCatching {
+            prefs.clear()
+            prefs.flush()
+        }
     }
 }

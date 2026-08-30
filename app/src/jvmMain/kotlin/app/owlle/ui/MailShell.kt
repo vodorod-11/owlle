@@ -32,7 +32,6 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Mail
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.outlined.Send
@@ -205,33 +204,45 @@ private fun FolderSidebar(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .fillMaxWidth()
-                .clickable(onClick = onOpenProfile)
-                .padding(horizontal = 6.dp, vertical = 2.dp),
+            modifier = Modifier.padding(start = 10.dp, end = 6.dp).fillMaxWidth(),
         ) {
-            Box(
-                Modifier.size(30.dp).background(OwlleColors.gold, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) { Text(profileEmoji, fontSize = 14.sp) }
-            Spacer(Modifier.width(8.dp))
-            Column {
-                if (profileName.isNotBlank()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(onClick = onOpenProfile)
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                Box(
+                    Modifier.size(30.dp).background(OwlleColors.gold, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { Text(profileEmoji, fontSize = 14.sp) }
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    if (profileName.isNotBlank()) {
+                        Text(
+                            profileName,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     Text(
-                        profileName,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        accountEmail,
+                        fontSize = 11.sp,
+                        color = OwlleColors.inkMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Text(
-                    accountEmail,
-                    fontSize = 11.sp,
-                    color = OwlleColors.inkMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+            }
+            IconButton(onClick = onToggleTheme) {
+                Icon(
+                    if (dark) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
+                    contentDescription = if (dark) "Switch to light theme" else "Switch to dark theme",
+                    tint = OwlleColors.inkMuted,
+                    modifier = Modifier.size(17.dp),
                 )
             }
         }
@@ -247,29 +258,6 @@ private fun FolderSidebar(
                 items(custom, key = { it.path }) { folder ->
                     SidebarRow(folder, folder == selected, onSelect)
                 }
-            }
-        }
-
-        HorizontalDivider(color = OwlleColors.hairline)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp),
-        ) {
-            IconButton(onClick = onToggleTheme) {
-                Icon(
-                    if (dark) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
-                    contentDescription = if (dark) "Switch to light theme" else "Switch to dark theme",
-                    tint = OwlleColors.goldDeep,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            IconButton(onClick = onOpenProfile) {
-                Icon(
-                    Icons.Outlined.Person,
-                    contentDescription = "Profile",
-                    tint = OwlleColors.goldDeep,
-                    modifier = Modifier.size(18.dp),
-                )
             }
         }
     }

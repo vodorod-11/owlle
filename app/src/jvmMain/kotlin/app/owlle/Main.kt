@@ -22,6 +22,8 @@ import java.awt.Taskbar
 import javax.imageio.ImageIO
 
 fun main() {
+    // Let the macOS window chrome follow the system light/dark appearance.
+    System.setProperty("apple.awt.application.appearance", "system")
     installDockIcon()
     application {
         Window(

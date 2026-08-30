@@ -45,18 +45,19 @@ val LightPalette = OwllePalette(
     isDark = false,
 )
 
+// Neutral near-black ground; gold is an accent, not a tint on everything.
 val DarkPalette = OwllePalette(
-    gold = Color(0xFFEFAF1C),
-    goldDeep = Color(0xFFE9B23A),
-    goldWash = Color(0xFF2A2413),
-    paper = Color(0xFF1A1712),
-    sidebar = Color(0xFF221E16),
-    ink = Color(0xFFEDE6D4),
-    inkMuted = Color(0xFFA79C82),
-    hairline = Color(0xFF37311F),
-    unread = Color(0xFFE9B23A),
-    selection = Color(0xFF3A3115),
-    danger = Color(0xFFD97B5D),
+    gold = Color(0xFFF2B01E),
+    goldDeep = Color(0xFFE9AC2F),
+    goldWash = Color(0xFF3D3417),
+    paper = Color(0xFF1D1C1A),
+    sidebar = Color(0xFF262421),
+    ink = Color(0xFFECE9E4),
+    inkMuted = Color(0xFFA29D93),
+    hairline = Color(0xFF383530),
+    unread = Color(0xFFF2B01E),
+    selection = Color(0xFF443A16),
+    danger = Color(0xFFE08A6D),
     isDark = true,
 )
 
