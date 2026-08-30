@@ -12,8 +12,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * The golden Cupertino palettes. Compose draws every pixel itself,
- * so these render identically on every target we add later.
+ * The golden Cupertino palettes. Light is warm paper + gold; dark is a
+ * strictly NEUTRAL gray ground — warm-tinted text on dark reads as gold
+ * sludge, so in dark mode gold appears only as the accent (selection,
+ * unread, links) and never in body text or grounds.
  */
 data class OwllePalette(
     val gold: Color,
@@ -21,11 +23,13 @@ data class OwllePalette(
     val goldWash: Color,
     val paper: Color,
     val sidebar: Color,
+    val sidebarIcon: Color,
     val ink: Color,
     val inkMuted: Color,
     val hairline: Color,
     val unread: Color,
     val selection: Color,
+    val onSelection: Color,
     val danger: Color,
     val isDark: Boolean,
 )
@@ -36,27 +40,30 @@ val LightPalette = OwllePalette(
     goldWash = Color(0xFFFBF3DC),
     paper = Color(0xFFFCFAF4),
     sidebar = Color(0xFFF4F0E4),
+    sidebarIcon = Color(0xFFB07C08),
     ink = Color(0xFF272217),
     inkMuted = Color(0xFF6E6656),
     hairline = Color(0xFFE5DEC9),
     unread = Color(0xFFEFAF1C),
     selection = Color(0xFFF6E7BC),
+    onSelection = Color(0xFF272217),
     danger = Color(0xFFA3492E),
     isDark = false,
 )
 
-// Neutral near-black ground; gold is an accent, not a tint on everything.
 val DarkPalette = OwllePalette(
-    gold = Color(0xFFF2B01E),
-    goldDeep = Color(0xFFE9AC2F),
-    goldWash = Color(0xFF3D3417),
-    paper = Color(0xFF1D1C1A),
-    sidebar = Color(0xFF262421),
-    ink = Color(0xFFECE9E4),
-    inkMuted = Color(0xFFA29D93),
-    hairline = Color(0xFF383530),
-    unread = Color(0xFFF2B01E),
-    selection = Color(0xFF443A16),
+    gold = Color(0xFFF5B31F),
+    goldDeep = Color(0xFFF0B028),
+    goldWash = Color(0xFF383117),
+    paper = Color(0xFF191919),
+    sidebar = Color(0xFF212121),
+    sidebarIcon = Color(0xFF908D87),
+    ink = Color(0xFFE9E8E6),
+    inkMuted = Color(0xFF9A9791),
+    hairline = Color(0xFF333230),
+    unread = Color(0xFFF5B31F),
+    selection = Color(0xFFF0B028),
+    onSelection = Color(0xFF191919),
     danger = Color(0xFFE08A6D),
     isDark = true,
 )
@@ -73,11 +80,13 @@ object OwlleColors {
     val goldWash: Color @Composable get() = LocalOwllePalette.current.goldWash
     val paper: Color @Composable get() = LocalOwllePalette.current.paper
     val sidebar: Color @Composable get() = LocalOwllePalette.current.sidebar
+    val sidebarIcon: Color @Composable get() = LocalOwllePalette.current.sidebarIcon
     val ink: Color @Composable get() = LocalOwllePalette.current.ink
     val inkMuted: Color @Composable get() = LocalOwllePalette.current.inkMuted
     val hairline: Color @Composable get() = LocalOwllePalette.current.hairline
     val unread: Color @Composable get() = LocalOwllePalette.current.unread
     val selection: Color @Composable get() = LocalOwllePalette.current.selection
+    val onSelection: Color @Composable get() = LocalOwllePalette.current.onSelection
     val danger: Color @Composable get() = LocalOwllePalette.current.danger
     val isDark: Boolean @Composable get() = LocalOwllePalette.current.isDark
 }
@@ -101,7 +110,7 @@ private fun lightScheme(p: OwllePalette) = lightColorScheme(
 
 private fun darkScheme(p: OwllePalette) = darkColorScheme(
     primary = p.goldDeep,
-    onPrimary = Color(0xFF1A1712),
+    onPrimary = p.onSelection,
     primaryContainer = p.goldWash,
     onPrimaryContainer = p.ink,
     secondary = p.gold,

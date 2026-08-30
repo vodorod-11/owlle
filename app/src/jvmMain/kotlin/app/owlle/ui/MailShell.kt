@@ -292,13 +292,14 @@ private fun SidebarRow(folder: MailFolder, selected: Boolean, onSelect: (MailFol
         Icon(
             folder.specialUse.icon(),
             contentDescription = null,
-            tint = OwlleColors.goldDeep,
+            tint = if (selected) OwlleColors.onSelection else OwlleColors.sidebarIcon,
             modifier = Modifier.size(17.dp),
         )
         Spacer(Modifier.width(9.dp))
         Text(
             folder.displayName,
             fontSize = 13.sp,
+            color = if (selected) OwlleColors.onSelection else OwlleColors.ink,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -391,8 +392,9 @@ private fun EnvelopeRow(envelope: Envelope, onOpen: (Envelope) -> Unit) {
             Row {
                 Text(
                     envelope.fromName.ifBlank { envelope.fromAddress },
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = if (envelope.seen) FontWeight.Medium else FontWeight.Bold,
                     fontSize = 13.sp,
+                    color = OwlleColors.ink,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),

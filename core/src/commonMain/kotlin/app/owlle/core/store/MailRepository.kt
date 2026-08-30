@@ -70,7 +70,10 @@ class MailRepository(
 
     suspend fun refreshEnvelopes(folder: MailFolder, limit: Int = 50) {
         val remote = backend.envelopes(folder, limit)
+        // Mirror the server window: drop everything cached for this folder first,
+        // so messages deleted or moved on the server disappear locally too.
         db.mailQueries.transaction {
+            db.mailQueries.deleteFolderMessages(account.email, folder.path)
             remote.forEach { e ->
                 db.mailQueries.upsertMessage(
                     account.email, folder.path, e.uid, e.subject,
