@@ -1,6 +1,7 @@
 package app.owlle.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
@@ -139,7 +140,10 @@ fun OwlleTheme(dark: Boolean = false, content: @Composable () -> Unit) {
         MaterialTheme(
             colorScheme = if (dark) darkScheme(palette) else lightScheme(palette),
             shapes = shapes,
-            content = content,
-        )
+        ) {
+            // Default content color for every Text/Icon that doesn't set one —
+            // without this, unset text falls back to black and vanishes in dark mode.
+            CompositionLocalProvider(LocalContentColor provides palette.ink, content = content)
+        }
     }
 }

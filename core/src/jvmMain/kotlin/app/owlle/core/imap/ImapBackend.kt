@@ -270,5 +270,7 @@ class ImapBackend : MailBackend {
             .replace("&lt;", "<")
             .replace("&gt;", ">")
             .replace("&quot;", "\"")
+            .lines()
+            .joinToString("\n") { it.replace(Regex("[ \t]{2,}"), " ").trim() }
             .replace(Regex("\n{3,}"), "\n\n")
 }
