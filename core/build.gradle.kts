@@ -17,6 +17,9 @@ kotlin {
             implementation(libs.angus.mail)
             implementation(libs.sqldelight.sqlite.driver)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 

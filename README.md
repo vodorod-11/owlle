@@ -1,4 +1,8 @@
-# owlle 🦉
+<p align="center">
+  <img src="app/icons/owlle-512.png" width="120" alt="owlle — an owl in a golden circle">
+</p>
+
+# owlle
 
 A golden, Cupertino-styled mail client. Kotlin Multiplatform + Compose Multiplatform,
 desktop-first (macOS / Windows / Linux via the JVM target), with Android and iOS
@@ -47,6 +51,18 @@ most large providers require an **app password** — plain passwords are rejecte
    Microsoft Graph backend behind the same `MailBackend` interface
 4. IMAP IDLE push on desktop; Android target
 5. iOS target (shared Rust protocol core via UniFFI/Gobley is the leading plan)
+
+## Workflow
+
+- `main` is stable. No direct commits.
+- Work happens on phase/feature branches: `phase-2/owl-protocol`,
+  `feat/compose-send`, `fix/...`, `infra/...`.
+- Open a PR into `main`; CI (`./gradlew build` — compile + all tests on
+  Linux/JDK 21) must be green before merging. Merge once testing on the
+  branch has shaken out the bugs.
+- Tests live in `core/src/commonTest` (platform-neutral logic) and
+  `core/src/jvmTest` (JVM backend pieces). New protocol/parsing logic
+  ships with tests.
 
 ## Architecture notes
 
