@@ -1,0 +1,47 @@
+CREATE TABLE folders (
+  accountEmail TEXT NOT NULL,
+  path TEXT NOT NULL,
+  displayName TEXT NOT NULL,
+  specialUse TEXT NOT NULL,
+  PRIMARY KEY (accountEmail, path)
+);
+
+CREATE TABLE messages (
+  accountEmail TEXT NOT NULL,
+  folderPath TEXT NOT NULL,
+  uid INTEGER NOT NULL,
+  subject TEXT NOT NULL,
+  fromName TEXT NOT NULL,
+  fromAddress TEXT NOT NULL,
+  sentAtEpochMs INTEGER NOT NULL,
+  preview TEXT NOT NULL DEFAULT '',
+  seen INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (accountEmail, folderPath, uid)
+);
+
+upsertFolder:
+INSERT OR REPLACE INTO folders(accountEmail, path, displayName, specialUse)
+VALUES (?, ?, ?, ?);
+
+selectFolders:
+SELECT * FROM folders WHERE accountEmail = ?;
+
+deleteFolders:
+DELETE FROM folders WHERE accountEmail = ?;
+
+upsertMessage:
+INSERT OR REPLACE INTO messages(accountEmail, folderPath, uid, subject, fromName, fromAddress, sentAtEpochMs, preview, seen)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectMessagesByFolder:
+SELECT * FROM messages
+WHERE accountEmail = ? AND folderPath = ?
+ORDER BY sentAtEpochMs DESC
+LIMIT ?;
+
+deleteFolderMessages:
+DELETE FROM messages WHERE accountEmail = ? AND folderPath = ?;
+
+markSeen:
+UPDATE messages SET seen = 1
+WHERE accountEmail = ? AND folderPath = ? AND uid = ?;
