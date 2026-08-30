@@ -7,6 +7,7 @@ import app.olwle.core.model.Envelope
 import app.olwle.core.model.MailAccount
 import app.olwle.core.model.MailFolder
 import app.olwle.core.model.MessageContent
+import jakarta.mail.AuthenticationFailedException
 import jakarta.mail.FetchProfile
 import jakarta.mail.Flags
 import jakarta.mail.Folder
@@ -46,6 +47,16 @@ class ImapBackend : MailBackend {
                 it.connect(account.imapHost, account.imapPort, account.username, account.password)
             }
             this@ImapBackend.account = account
+        } catch (e: AuthenticationFailedException) {
+            val serverSaysAppPassword = e.message?.contains("application-specific", ignoreCase = true) == true
+            val hint = if (serverSaysAppPassword || account.imapHost.contains("gmail", ignoreCase = true)) {
+                "Gmail rejected the sign-in: it requires an app password instead of your normal one. " +
+                    "Create one at myaccount.google.com/apppasswords (needs 2-Step Verification), " +
+                    "then paste the 16-character code here."
+            } else {
+                "The server rejected this username or password."
+            }
+            throw MailBackendException(hint, e)
         } catch (e: Exception) {
             throw MailBackendException(e.message ?: "Could not connect to ${account.imapHost}", e)
         }

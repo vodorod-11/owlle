@@ -13,8 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -30,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.olwle.core.model.MailAccount
@@ -48,6 +54,7 @@ fun AccountSetupScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var useSsl by remember { mutableStateOf(true) }
+    var showPassword by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize().background(OlwleColors.paper),
@@ -129,7 +136,21 @@ fun AccountSetupScreen(
                     value = password, onValueChange = { password = it },
                     label = { Text("Password") },
                     singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (showPassword) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { showPassword = !showPassword }) {
+                            Icon(
+                                if (showPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = if (showPassword) "Hide password" else "Show password",
+                                tint = OlwleColors.inkMuted,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
