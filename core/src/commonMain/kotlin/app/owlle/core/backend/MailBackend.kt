@@ -1,9 +1,9 @@
-package app.olwle.core.backend
+package app.owlle.core.backend
 
-import app.olwle.core.model.Envelope
-import app.olwle.core.model.MailAccount
-import app.olwle.core.model.MailFolder
-import app.olwle.core.model.MessageContent
+import app.owlle.core.model.Envelope
+import app.owlle.core.model.MailAccount
+import app.owlle.core.model.MailFolder
+import app.owlle.core.model.MessageContent
 
 /**
  * One mailbox transport. Phase-1 ships an IMAP implementation (JVM);

@@ -1,4 +1,4 @@
-package app.olwle
+package app.owlle
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -10,17 +10,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import app.olwle.theme.OlwleTheme
-import app.olwle.ui.AccountSetupScreen
-import app.olwle.ui.MailShell
+import app.owlle.theme.OwlleTheme
+import app.owlle.ui.AccountSetupScreen
+import app.owlle.ui.MailShell
 
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "olwle",
+        title = "owlle",
         state = rememberWindowState(size = DpSize(1200.dp, 780.dp)),
     ) {
-        OlwleTheme {
+        OwlleTheme {
             App()
         }
     }

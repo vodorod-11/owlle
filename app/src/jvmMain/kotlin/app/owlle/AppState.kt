@@ -1,13 +1,13 @@
-package app.olwle
+package app.owlle
 
-import app.olwle.core.backend.MailBackendException
-import app.olwle.core.db.DriverFactory
-import app.olwle.core.imap.ImapBackend
-import app.olwle.core.model.Envelope
-import app.olwle.core.model.MailAccount
-import app.olwle.core.model.MailFolder
-import app.olwle.core.model.MessageContent
-import app.olwle.core.store.MailRepository
+import app.owlle.core.backend.MailBackendException
+import app.owlle.core.db.DriverFactory
+import app.owlle.core.imap.ImapBackend
+import app.owlle.core.model.Envelope
+import app.owlle.core.model.MailAccount
+import app.owlle.core.model.MailFolder
+import app.owlle.core.model.MessageContent
+import app.owlle.core.store.MailRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

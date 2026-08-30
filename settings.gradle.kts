@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "olwle"
+rootProject.name = "owlle"
 include(":core", ":app")

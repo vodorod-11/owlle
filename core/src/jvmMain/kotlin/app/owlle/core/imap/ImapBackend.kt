@@ -1,12 +1,12 @@
-package app.olwle.core.imap
+package app.owlle.core.imap
 
-import app.olwle.core.backend.FolderMapper
-import app.olwle.core.backend.MailBackend
-import app.olwle.core.backend.MailBackendException
-import app.olwle.core.model.Envelope
-import app.olwle.core.model.MailAccount
-import app.olwle.core.model.MailFolder
-import app.olwle.core.model.MessageContent
+import app.owlle.core.backend.FolderMapper
+import app.owlle.core.backend.MailBackend
+import app.owlle.core.backend.MailBackendException
+import app.owlle.core.model.Envelope
+import app.owlle.core.model.MailAccount
+import app.owlle.core.model.MailFolder
+import app.owlle.core.model.MessageContent
 import jakarta.mail.AuthenticationFailedException
 import jakarta.mail.FetchProfile
 import jakarta.mail.Flags

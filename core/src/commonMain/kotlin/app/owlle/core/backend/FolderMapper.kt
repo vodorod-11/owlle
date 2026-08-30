@@ -1,9 +1,9 @@
-package app.olwle.core.backend
+package app.owlle.core.backend
 
-import app.olwle.core.model.SpecialUse
+import app.owlle.core.model.SpecialUse
 
 /**
- * Maps a server folder onto olwle's sections: RFC 6154 special-use
+ * Maps a server folder onto owlle's sections: RFC 6154 special-use
  * attributes when the server advertises them (Gmail always does),
  * name heuristics as fallback (Exchange Online and many custom servers
  * don't advertise SPECIAL-USE). Per-account user overrides come later.

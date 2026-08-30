@@ -1,4 +1,4 @@
-package app.olwle.core.model
+package app.owlle.core.model
 
 /**
  * Runtime account description. The password lives in memory only for now;
@@ -18,7 +18,7 @@ data class MailAccount(
 enum class SpecialUse {
     INBOX, SENT, DRAFTS, TRASH, JUNK, ARCHIVE, ALL, FLAGGED, CUSTOM;
 
-    /** The mandatory sections olwle always surfaces, in display order. */
+    /** The mandatory sections owlle always surfaces, in display order. */
     companion object {
         val pinnedOrder = listOf(INBOX, SENT, DRAFTS, JUNK, TRASH, ARCHIVE)
     }

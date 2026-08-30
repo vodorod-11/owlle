@@ -1,4 +1,4 @@
-package app.olwle.ui
+package app.owlle.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +38,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.olwle.core.model.MailAccount
-import app.olwle.theme.OlwleColors
+import app.owlle.core.model.MailAccount
+import app.owlle.theme.OwlleColors
 
 @Composable
 fun AccountSetupScreen(
@@ -57,12 +57,12 @@ fun AccountSetupScreen(
     var showPassword by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier.fillMaxSize().background(OlwleColors.paper),
+        modifier = Modifier.fillMaxSize().background(OwlleColors.paper),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = OlwleColors.sidebar,
+            color = OwlleColors.sidebar,
             modifier = Modifier.width(420.dp),
         ) {
             Column(
@@ -71,17 +71,17 @@ fun AccountSetupScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier.size(44.dp).background(OlwleColors.gold, CircleShape),
+                        modifier = Modifier.size(44.dp).background(OwlleColors.gold, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text("🦉", fontSize = 22.sp)
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("olwle", fontWeight = FontWeight.SemiBold, fontSize = 22.sp)
+                        Text("owlle", fontWeight = FontWeight.SemiBold, fontSize = 22.sp)
                         Text(
                             "Add your mail account",
-                            color = OlwleColors.inkMuted,
+                            color = OwlleColors.inkMuted,
                             fontSize = 13.sp,
                         )
                     }
@@ -121,10 +121,10 @@ fun AccountSetupScreen(
                     ) {
                         Switch(
                             checked = useSsl, onCheckedChange = { useSsl = it },
-                            colors = SwitchDefaults.colors(checkedTrackColor = OlwleColors.gold),
+                            colors = SwitchDefaults.colors(checkedTrackColor = OwlleColors.gold),
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("SSL/TLS", fontSize = 13.sp, color = OlwleColors.inkMuted)
+                        Text("SSL/TLS", fontSize = 13.sp, color = OwlleColors.inkMuted)
                     }
                 }
                 OutlinedTextField(
@@ -146,7 +146,7 @@ fun AccountSetupScreen(
                             Icon(
                                 if (showPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                                 contentDescription = if (showPassword) "Hide password" else "Show password",
-                                tint = OlwleColors.inkMuted,
+                                tint = OwlleColors.inkMuted,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -155,7 +155,7 @@ fun AccountSetupScreen(
                 )
 
                 if (error != null) {
-                    Text(error, color = OlwleColors.danger, fontSize = 13.sp)
+                    Text(error, color = OwlleColors.danger, fontSize = 13.sp)
                 }
 
                 Button(
@@ -179,7 +179,7 @@ fun AccountSetupScreen(
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp,
-                            color = OlwleColors.paper,
+                            color = OwlleColors.paper,
                         )
                     } else {
                         Text("Connect")
@@ -189,7 +189,7 @@ fun AccountSetupScreen(
                 Text(
                     "Gmail and many providers require an app password for IMAP. " +
                         "Your password stays on this device and is not saved to disk yet.",
-                    color = OlwleColors.inkMuted,
+                    color = OwlleColors.inkMuted,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                 )

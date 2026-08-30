@@ -1,14 +1,14 @@
-package app.olwle.core.store
+package app.owlle.core.store
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import app.olwle.core.backend.MailBackend
-import app.olwle.core.db.OlwleDb
-import app.olwle.core.model.Envelope
-import app.olwle.core.model.MailAccount
-import app.olwle.core.model.MailFolder
-import app.olwle.core.model.MessageContent
-import app.olwle.core.model.SpecialUse
+import app.owlle.core.backend.MailBackend
+import app.owlle.core.db.OwlleDb
+import app.owlle.core.model.Envelope
+import app.owlle.core.model.MailAccount
+import app.owlle.core.model.MailFolder
+import app.owlle.core.model.MessageContent
+import app.owlle.core.model.SpecialUse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.map
  * milestone alongside message actions.
  */
 class MailRepository(
-    private val db: OlwleDb,
+    private val db: OwlleDb,
     private val backend: MailBackend,
     private val account: MailAccount,
 ) {

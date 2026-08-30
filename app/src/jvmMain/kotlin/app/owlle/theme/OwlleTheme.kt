@@ -1,4 +1,4 @@
-package app.olwle.theme
+package app.owlle.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
  * The golden Cupertino palette. Compose draws every pixel itself,
  * so this theme renders identically on every target we add later.
  */
-object OlwleColors {
+object OwlleColors {
     val gold = Color(0xFFEFAF1C)
     val goldDeep = Color(0xFFB07C08)
     val goldWash = Color(0xFFFBF3DC)
@@ -27,20 +27,20 @@ object OlwleColors {
 }
 
 private val colorScheme = lightColorScheme(
-    primary = OlwleColors.goldDeep,
+    primary = OwlleColors.goldDeep,
     onPrimary = Color.White,
-    primaryContainer = OlwleColors.goldWash,
-    onPrimaryContainer = OlwleColors.ink,
-    secondary = OlwleColors.gold,
-    background = OlwleColors.paper,
-    onBackground = OlwleColors.ink,
-    surface = OlwleColors.paper,
-    onSurface = OlwleColors.ink,
-    surfaceVariant = OlwleColors.sidebar,
-    onSurfaceVariant = OlwleColors.inkMuted,
-    outline = OlwleColors.hairline,
-    outlineVariant = OlwleColors.hairline,
-    error = OlwleColors.danger,
+    primaryContainer = OwlleColors.goldWash,
+    onPrimaryContainer = OwlleColors.ink,
+    secondary = OwlleColors.gold,
+    background = OwlleColors.paper,
+    onBackground = OwlleColors.ink,
+    surface = OwlleColors.paper,
+    onSurface = OwlleColors.ink,
+    surfaceVariant = OwlleColors.sidebar,
+    onSurfaceVariant = OwlleColors.inkMuted,
+    outline = OwlleColors.hairline,
+    outlineVariant = OwlleColors.hairline,
+    error = OwlleColors.danger,
 )
 
 private val shapes = Shapes(
@@ -51,7 +51,7 @@ private val shapes = Shapes(
 )
 
 @Composable
-fun OlwleTheme(content: @Composable () -> Unit) {
+fun OwlleTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = colorScheme,
         shapes = shapes,

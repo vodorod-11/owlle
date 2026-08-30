@@ -23,13 +23,13 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "app.olwle.MainKt"
+        mainClass = "app.owlle.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "olwle"
+            packageName = "owlle"
             packageVersion = "0.1.0"
-            description = "olwle — the golden mail client"
+            description = "owlle — the golden mail client"
         }
     }
 }

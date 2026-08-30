@@ -1,4 +1,4 @@
-package app.olwle.ui
+package app.owlle.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,11 +45,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.olwle.core.model.Envelope
-import app.olwle.core.model.MailFolder
-import app.olwle.core.model.MessageContent
-import app.olwle.core.model.SpecialUse
-import app.olwle.theme.OlwleColors
+import app.owlle.core.model.Envelope
+import app.owlle.core.model.MailFolder
+import app.owlle.core.model.MessageContent
+import app.owlle.core.model.SpecialUse
+import app.owlle.theme.OwlleColors
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -91,7 +91,7 @@ fun MailShell(
     onRefresh: () -> Unit,
     onOpenMessage: (Envelope) -> Unit,
 ) {
-    Row(Modifier.fillMaxSize().background(OlwleColors.paper)) {
+    Row(Modifier.fillMaxSize().background(OwlleColors.paper)) {
         FolderSidebar(accountEmail, folders, selectedFolder, onSelectFolder)
         VerticalHairline()
         MessageListPane(selectedFolder, envelopes, listLoading, error, onRefresh, onOpenMessage)
@@ -102,7 +102,7 @@ fun MailShell(
 
 @Composable
 private fun VerticalHairline() {
-    Box(Modifier.fillMaxHeight().width(1.dp).background(OlwleColors.hairline))
+    Box(Modifier.fillMaxHeight().width(1.dp).background(OwlleColors.hairline))
 }
 
 // ---- sidebar ---------------------------------------------------------------
@@ -118,21 +118,21 @@ private fun FolderSidebar(
     val custom = folders.filter { it.specialUse == SpecialUse.CUSTOM }
 
     Column(
-        Modifier.width(230.dp).fillMaxHeight().background(OlwleColors.sidebar).padding(vertical = 14.dp),
+        Modifier.width(230.dp).fillMaxHeight().background(OwlleColors.sidebar).padding(vertical = 14.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp),
         ) {
             Box(
-                Modifier.size(26.dp).background(OlwleColors.gold, CircleShape),
+                Modifier.size(26.dp).background(OwlleColors.gold, CircleShape),
                 contentAlignment = Alignment.Center,
             ) { Text("🦉", fontSize = 13.sp) }
             Spacer(Modifier.width(8.dp))
             Text(
                 accountEmail,
                 fontSize = 12.sp,
-                color = OlwleColors.inkMuted,
+                color = OwlleColors.inkMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -161,7 +161,7 @@ private fun SidebarLabel(text: String) {
         fontSize = 10.sp,
         letterSpacing = 1.sp,
         fontWeight = FontWeight.SemiBold,
-        color = OlwleColors.inkMuted,
+        color = OwlleColors.inkMuted,
         modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp),
     )
 }
@@ -174,7 +174,7 @@ private fun SidebarRow(folder: MailFolder, selected: Boolean, onSelect: (MailFol
             .padding(horizontal = 10.dp, vertical = 1.dp)
             .fillMaxWidth()
             .background(
-                if (selected) OlwleColors.selection else OlwleColors.sidebar,
+                if (selected) OwlleColors.selection else OwlleColors.sidebar,
                 MaterialTheme.shapes.small,
             )
             .clickable { onSelect(folder) }
@@ -183,7 +183,7 @@ private fun SidebarRow(folder: MailFolder, selected: Boolean, onSelect: (MailFol
         Icon(
             folder.specialUse.icon(),
             contentDescription = null,
-            tint = OlwleColors.goldDeep,
+            tint = OwlleColors.goldDeep,
             modifier = Modifier.size(17.dp),
         )
         Spacer(Modifier.width(9.dp))
@@ -225,7 +225,7 @@ private fun MessageListPane(
                 CircularProgressIndicator(
                     Modifier.size(16.dp),
                     strokeWidth = 2.dp,
-                    color = OlwleColors.goldDeep,
+                    color = OwlleColors.goldDeep,
                 )
                 Spacer(Modifier.width(6.dp))
             }
@@ -233,17 +233,17 @@ private fun MessageListPane(
                 Icon(
                     Icons.Outlined.Refresh,
                     contentDescription = "Refresh",
-                    tint = OlwleColors.goldDeep,
+                    tint = OwlleColors.goldDeep,
                     modifier = Modifier.size(18.dp),
                 )
             }
         }
-        HorizontalDivider(color = OlwleColors.hairline)
+        HorizontalDivider(color = OwlleColors.hairline)
 
         if (error != null) {
             Text(
                 error,
-                color = OlwleColors.danger,
+                color = OwlleColors.danger,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(16.dp),
             )
@@ -256,7 +256,7 @@ private fun MessageListPane(
                 items(envelopes, key = { it.uid }) { envelope ->
                     EnvelopeRow(envelope, onOpen)
                     HorizontalDivider(
-                        color = OlwleColors.hairline,
+                        color = OwlleColors.hairline,
                         modifier = Modifier.padding(start = 26.dp),
                     )
                 }
@@ -275,7 +275,7 @@ private fun EnvelopeRow(envelope: Envelope, onOpen: (Envelope) -> Unit) {
     ) {
         Box(Modifier.width(16.dp).padding(top = 6.dp), contentAlignment = Alignment.Center) {
             if (!envelope.seen) {
-                Box(Modifier.size(8.dp).background(OlwleColors.unread, CircleShape))
+                Box(Modifier.size(8.dp).background(OwlleColors.unread, CircleShape))
             }
         }
         Column(Modifier.weight(1f)) {
@@ -291,7 +291,7 @@ private fun EnvelopeRow(envelope: Envelope, onOpen: (Envelope) -> Unit) {
                 Text(
                     formatListDate(envelope.sentAtEpochMs),
                     fontSize = 11.sp,
-                    color = OlwleColors.inkMuted,
+                    color = OwlleColors.inkMuted,
                 )
             }
             Text(
@@ -299,7 +299,7 @@ private fun EnvelopeRow(envelope: Envelope, onOpen: (Envelope) -> Unit) {
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (envelope.seen) OlwleColors.inkMuted else OlwleColors.ink,
+                color = if (envelope.seen) OwlleColors.inkMuted else OwlleColors.ink,
             )
         }
     }
@@ -308,7 +308,7 @@ private fun EnvelopeRow(envelope: Envelope, onOpen: (Envelope) -> Unit) {
 @Composable
 private fun EmptyHint(text: String) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text, color = OlwleColors.inkMuted, fontSize = 13.sp)
+        Text(text, color = OwlleColors.inkMuted, fontSize = 13.sp)
     }
 }
 
@@ -319,18 +319,18 @@ private fun MessageViewPane(message: MessageContent?, loading: Boolean) {
     Box(Modifier.fillMaxSize()) {
         when {
             loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = OlwleColors.goldDeep)
+                CircularProgressIndicator(color = OwlleColors.goldDeep)
             }
             message == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         Icons.Outlined.Mail,
                         contentDescription = null,
-                        tint = OlwleColors.hairline,
+                        tint = OwlleColors.hairline,
                         modifier = Modifier.size(56.dp),
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("Select a message", color = OlwleColors.inkMuted, fontSize = 13.sp)
+                    Text("Select a message", color = OwlleColors.inkMuted, fontSize = 13.sp)
                 }
             }
             else -> Column(
@@ -343,9 +343,9 @@ private fun MessageViewPane(message: MessageContent?, loading: Boolean) {
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 26.sp,
                 )
-                Text("From: ${message.fromDisplay}", fontSize = 12.sp, color = OlwleColors.inkMuted)
+                Text("From: ${message.fromDisplay}", fontSize = 12.sp, color = OwlleColors.inkMuted)
                 if (message.toDisplay.isNotBlank()) {
-                    Text("To: ${message.toDisplay}", fontSize = 12.sp, color = OlwleColors.inkMuted)
+                    Text("To: ${message.toDisplay}", fontSize = 12.sp, color = OwlleColors.inkMuted)
                 }
                 if (message.sentAtEpochMs > 0) {
                     Text(
@@ -353,10 +353,10 @@ private fun MessageViewPane(message: MessageContent?, loading: Boolean) {
                             Instant.ofEpochMilli(message.sentAtEpochMs).atZone(ZoneId.systemDefault())
                         ),
                         fontSize = 12.sp,
-                        color = OlwleColors.inkMuted,
+                        color = OwlleColors.inkMuted,
                     )
                 }
-                HorizontalDivider(color = OlwleColors.hairline, modifier = Modifier.padding(vertical = 10.dp))
+                HorizontalDivider(color = OwlleColors.hairline, modifier = Modifier.padding(vertical = 10.dp))
                 SelectionContainer {
                     Text(message.bodyText, fontSize = 14.sp, lineHeight = 21.sp)
                 }

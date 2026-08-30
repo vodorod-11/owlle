@@ -22,8 +22,8 @@ kotlin {
 
 sqldelight {
     databases {
-        create("OlwleDb") {
-            packageName.set("app.olwle.core.db")
+        create("OwlleDb") {
+            packageName.set("app.owlle.core.db")
         }
     }
 }

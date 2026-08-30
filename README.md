@@ -1,10 +1,10 @@
-# olwle 🦉
+# owlle 🦉
 
 A golden, Cupertino-styled mail client. Kotlin Multiplatform + Compose Multiplatform,
 desktop-first (macOS / Windows / Linux via the JVM target), with Android and iOS
 targets planned next.
 
-olwle is also the reference client for the **OWL protocol** (Open Web of Letters) —
+owlle is also the reference client for the **OWL protocol** (Open Web of Letters) —
 a progressive-enhancement layer over standard email. Phase 1 (this repo) is the
 plain mail client; OWL features arrive in phase 2.
 
