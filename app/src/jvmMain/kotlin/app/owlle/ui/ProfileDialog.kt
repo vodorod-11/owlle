@@ -31,6 +31,7 @@ fun ProfileDialog(
     currentName: String,
     currentEmoji: String,
     onSave: (name: String, emoji: String) -> Unit,
+    onSignOut: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(currentName) }
@@ -68,6 +69,9 @@ fun ProfileDialog(
                     fontSize = 12.sp,
                     color = OwlleColors.inkMuted,
                 )
+                TextButton(onClick = onSignOut) {
+                    Text("Sign out of this account", color = OwlleColors.danger, fontSize = 13.sp)
+                }
             }
         },
         confirmButton = {

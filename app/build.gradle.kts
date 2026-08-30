@@ -17,6 +17,7 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.java.keyring)
         }
     }
 }

@@ -1,6 +1,7 @@
 package app.owlle
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,10 +69,13 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
     var profileEmoji by remember { mutableStateOf(AppSettings.profileEmoji) }
     var profileOpen by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) { state.autoConnect() }
+
     when (screen) {
         Screen.Setup -> AccountSetupScreen(
             connecting = connecting,
             error = error,
+            initial = remember { AccountStore.loadConfigOnly() },
             onConnect = { account ->
                 if (profileName.isBlank() && account.displayName.isNotBlank()) {
                     profileName = account.displayName
@@ -121,6 +125,10 @@ private fun App(dark: Boolean, onToggleTheme: () -> Unit) {
                         AppSettings.profileName = name
                         AppSettings.profileEmoji = emoji
                         profileOpen = false
+                    },
+                    onSignOut = {
+                        profileOpen = false
+                        state.signOut()
                     },
                     onDismiss = { profileOpen = false },
                 )

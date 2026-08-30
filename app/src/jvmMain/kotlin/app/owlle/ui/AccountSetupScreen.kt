@@ -45,15 +45,16 @@ import app.owlle.theme.OwlleColors
 fun AccountSetupScreen(
     connecting: Boolean,
     error: String?,
+    initial: MailAccount? = null,
     onConnect: (MailAccount) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var host by remember { mutableStateOf("") }
-    var port by remember { mutableStateOf("993") }
-    var username by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(initial?.displayName ?: "") }
+    var email by remember { mutableStateOf(initial?.email ?: "") }
+    var host by remember { mutableStateOf(initial?.imapHost ?: "") }
+    var port by remember { mutableStateOf(initial?.imapPort?.toString() ?: "993") }
+    var username by remember { mutableStateOf(initial?.username ?: "") }
     var password by remember { mutableStateOf("") }
-    var useSsl by remember { mutableStateOf(true) }
+    var useSsl by remember { mutableStateOf(initial?.useSsl ?: true) }
     var showPassword by remember { mutableStateOf(false) }
 
     Box(

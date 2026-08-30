@@ -65,6 +65,7 @@ class AppState(private val scope: CoroutineScope) {
                 }
 
                 repo.refreshFolders()
+                AccountStore.save(account)
                 screen.value = Screen.Mail
             } catch (e: MailBackendException) {
                 error.value = e.message
@@ -73,6 +74,30 @@ class AppState(private val scope: CoroutineScope) {
             } finally {
                 connecting.value = false
             }
+        }
+    }
+
+    /** Reconnects with the stored account, if one exists with a retrievable password. */
+    fun autoConnect() {
+        if (repository != null || connecting.value) return
+        AccountStore.load()?.let(::connect)
+    }
+
+    fun signOut() {
+        scope.launch {
+            runCatching { backend.close() }
+            AccountStore.clear()
+            folderJob?.cancel()
+            envelopeJob?.cancel()
+            folders.value = emptyList()
+            selectedFolder.value = null
+            envelopes.value = emptyList()
+            selectedMessage.value = null
+            attachmentNote.value = null
+            accountEmail.value = ""
+            error.value = null
+            repository = null
+            screen.value = Screen.Setup
         }
     }
 
