@@ -242,7 +242,7 @@ class ImapBackend : MailBackend {
     /** Prefer text/plain; fall back to naively de-tagged HTML. */
     private fun extractBody(part: Part): String {
         findText(part, "text/plain")?.let { return it.trim() }
-        findText(part, "text/html")?.let { return stripHtml(it).trim() }
+        findText(part, "text/html")?.let { return HtmlText.strip(it).trim() }
         return "(no readable text part)"
     }
 
@@ -259,18 +259,4 @@ class ImapBackend : MailBackend {
         return null
     }
 
-    private fun stripHtml(html: String): String =
-        html
-            .replace(Regex("(?is)<(script|style)[^>]*>.*?</\\1>"), "")
-            .replace(Regex("(?i)<br\\s*/?>"), "\n")
-            .replace(Regex("(?i)</p>"), "\n\n")
-            .replace(Regex("<[^>]+>"), "")
-            .replace("&nbsp;", " ")
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .lines()
-            .joinToString("\n") { it.replace(Regex("[ \t]{2,}"), " ").trim() }
-            .replace(Regex("\n{3,}"), "\n\n")
 }
